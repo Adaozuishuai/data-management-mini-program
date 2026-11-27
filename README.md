@@ -1,4 +1,4 @@
-# data_mang_app
+# Data Management Mini Program
 
 HERO 研究电子病例报告微信小程序。当前版本用于演示病例建档、访视填写、用药记录与草稿保存。
 
