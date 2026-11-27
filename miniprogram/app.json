@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "HERO 研究",
+    "navigationBarBackgroundColor": "#fcf8f1",
+    "navigationBarTextStyle": "black"
+  },
+  "lazyCodeLoading": "requiredComponents"
+}

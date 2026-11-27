@@ -1,0 +1,42 @@
+<view class="shell {{screen==='edit'?'editing':''}}">
+<view wx:if="{{screen!=='home'}}" class="back" bindtap="back"><text>‹　返回</text><text>{{p.center}}　/　{{p.subject}}</text></view>
+<block wx:if="{{screen==='home'}}">
+<view class="hero">
+ <view class="contours" aria-hidden="true"><view/><view/><view/><view/><view/><view/></view>
+ <view class="heroInner"><view class="eyebrow">HERO　/　电子病例报告表</view><view class="heroTitle">研究病例</view>
+ <view class="metrics"><view><text class="number">{{total}}</text> 例受试者</view><view><text class="number">{{centers}}</text> 个研究中心</view></view></view>
+</view>
+<view class="sectionHead"><view class="heading">病例目录</view><button class="new" bindtap="toggleCreate">{{creating?'收起':'＋ 新建病例'}}</button></view>
+<view wx:if="{{creating}}" class="group"><view class="label">研究中心编号</view><input placeholder="填写中心编号" value="{{center}}" data-key="center" bindinput="input"/><view class="label">受试者编号</view><input placeholder="填写受试者编号" value="{{subject}}" data-key="subject" bindinput="input"/><button bindtap="create">建立病例</button></view>
+<view class="search"><view class="lens"/><input placeholder="搜索中心或受试者编号" value="{{query}}" data-key="query" bindinput="input"/></view>
+<view class="list"><view wx:for="{{patients}}" wx:key="id" class="row patientRow" data-id="{{item.id}}" bindtap="choose"><view class="folder"><view/></view><view class="grow"><view class="patientId">{{item.subject}}</view><view class="hint">研究中心 · {{item.center}}</view></view><text class="arrow">›</text></view><view wx:if="{{!patients.length}}" class="empty">未找到病例</view></view>
+<view class="demo">本地演示 · 仅录入虚构病例</view>
+</block>
+<block wx:elif="{{screen==='patient'}}"><view class="detailHead"><view class="eyebrow">受试者档案</view><view class="heroTitle">{{p.subject}}</view><view>研究中心 · {{p.center}}</view></view>
+<view class="tabs"><view class="{{tab==='visits'?'active':''}}" data-tab="visits" bindtap="selectTab">访视与表单</view><view class="{{tab==='drugs'?'active':''}}" data-tab="drugs" bindtap="selectTab">用药记录 · {{timeline.length}}</view></view>
+<view wx:if="{{tab==='visits'}}" class="list"><view class="row" wx:for="{{visits}}" wx:key="name" data-v="{{index}}" bindtap="visit"><view class="grow">{{item.name}}</view><text class="arrow">›</text></view></view>
+<view wx:else class="list"><view wx:if="{{!timeline.length}}" class="empty">暂无用药记录</view>
+<view wx:for="{{timeline}}" wx:key="index" class="row" data-v="{{item.v}}" data-f="{{item.f}}" bindtap="timeline"><view class="grow"><view>{{item.name}}</view><view class="hint">{{item.visit}} · {{item.date}}</view></view><text class="pill">{{item.state}}</text><text class="arrow">›</text></view></view></block>
+<block wx:elif="{{screen==='visit'}}"><view class="title">{{visits[v].name}}</view><picker mode="date" bindchange="date"><view class="dateRow"><text>实际访视日期</text><text>{{p.dates[v] || '选择日期'}}　›</text></view></picker>
+<view class="sectionHead"><view class="heading">访视表单</view><text class="hint">{{forms.length}} 项</text></view><view class="list"><view class="row" wx:for="{{forms}}" wx:key="name" data-f="{{index}}" bindtap="edit"><view class="grow">{{item.name}}</view><text class="pill {{item.saved==='待填'?'pending':''}}">{{item.saved}}</text><text class="arrow">›</text></view></view></block>
+<block wx:else><view class="title">{{form.name}}</view><view class="hint">{{visits[v].name}}</view>
+<view wx:if="{{form.status!=='已实现'}}" class="notice">{{form.status}}</view>
+<view class="link" bindtap="source">{{review?'收起':'查看'}}填写说明</view><text wx:if="{{review}}" class="source" selectable>{{source}}</text>
+<view wx:if="{{patientReport}}" class="notice">请按患者本人回答逐题记录，可展开查看填写说明。</view>
+<view wx:for="{{groups}}" wx:for-item="group" wx:for-index="r" wx:key="index" class="group">
+<view wx:if="{{groups.length>1}}" class="heading">记录 {{r+1}}</view>
+<view wx:for="{{group}}" wx:for-item="field" wx:key="key" class="question">
+ <view class="label">{{field.label}}</view>
+ <view wx:if="{{field.legacy}}" class="legacy">原记录 · {{field.value}}</view>
+ <view wx:if="{{field.type==='choice'}}" class="choices">
+  <view wx:for="{{field.options}}" wx:for-item="option" wx:for-index="n" wx:key="*this" aria-role="radio" aria-checked="{{option===field.value}}" class="option {{option===field.value?'selected':''}}" bindtap="value" data-r="{{r}}" data-i="{{field.key}}" data-choice="{{option}}"><view class="radioDot"/><text>{{field.display[n]}}</text></view>
+ </view>
+ <picker wx:elif="{{field.type==='picker'}}" range="{{field.options}}" data-r="{{r}}" data-i="{{field.key}}" data-pick="{{true}}" bindchange="value"><view class="field">{{field.value || '请选择'}}　⌄</view></picker>
+ <picker wx:elif="{{field.type==='date'}}" mode="date" value="{{field.value}}" data-i="{{field.key}}" data-r="{{r}}" bindchange="value"><view class="field">{{field.value || '选择日期'}}　⌄</view></picker>
+ <view wx:elif="{{field.unitLocked}}" class="unitRead">mg · 随所选规格记录</view>
+ <input wx:elif="{{field.type==='number'}}" type="digit" value="{{field.value}}" data-r="{{r}}" data-i="{{field.key}}" bindinput="value" placeholder="填写数值"/>
+ <textarea wx:else auto-height maxlength="-1" value="{{field.value}}" data-r="{{r}}" data-i="{{field.key}}" bindinput="value" placeholder="填写记录"/>
+ <textarea wx:if="{{field.detail}}" auto-height maxlength="-1" value="{{field.note}}" data-r="{{r}}" data-i="{{field.key}}" data-note="{{true}}" bindinput="value" placeholder="请具体说明"/>
+</view></view>
+<button wx:if="{{drug<0}}" class="secondary" bindtap="add">添加一条记录</button><view class="actions"><button class="secondary" data-status="草稿" bindtap="save">保存草稿</button><button data-status="已填" bindtap="save">标记已填并保存</button></view></block>
+</view>

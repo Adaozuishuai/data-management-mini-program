@@ -1,0 +1,8 @@
+.DS_Store
+project.private.config.json
+/原表对照.csv
+node_modules/
+.env
+.env.*
+*.pem
+*.key
